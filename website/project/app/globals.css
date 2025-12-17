@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+:root {
+  /* Neo-Brutalism Palette */
+  --neo-bg: #FAF9F6;
+  /* Off-white */
+  --neo-text: #000000;
+  /* Black */
+  --neo-shadow: #000000;
+  /* Hard shadow color */
+
+  /* Accents - Vibrant & Clashing */
+  --neo-primary: #CEFF1A;
+  /* Acid Green */
+  --neo-secondary: #FF00FF;
+  /* Hot Pink */
+  --neo-accent: #0000FF;
+  /* Primary Blue */
+
+  /* Spacing/Sizes */
+  --neo-border-width: 3px;
+  --neo-shadow-x: 5px;
+  --neo-shadow-y: 5px;
+}
+
+@theme inline {
+  --color-neo-bg: var(--neo-bg);
+  --color-neo-text: var(--neo-text);
+  --color-neo-primary: var(--neo-primary);
+  --color-neo-secondary: var(--neo-secondary);
+  --color-neo-accent: var(--neo-accent);
+
+  --font-sans: "Inter", "Helvetica Neue", sans-serif;
+  --font-mono: "Courier New", Courier, monospace;
+}
+
+body {
+  background-color: var(--neo-bg);
+  background-image: radial-gradient(var(--neo-text) 1px, transparent 0);
+  background-size: 40px 40px;
+  color: var(--neo-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Utilities for Neo-Brutalism */
+@utility neo-box {
+  border: var(--neo-border-width) solid var(--neo-text);
+  box-shadow: var(--neo-shadow-x) var(--neo-shadow-y) 0px 0px var(--neo-shadow);
+}
+
+@utility neo-text-shadow {
+  text-shadow: 2px 2px 0px var(--neo-shadow);
+}
+
+/* In globals.css */
+@layer utilities {
+  .text-stroke-black {
+    -webkit-text-stroke: 2px black;
+    color: transparent;
+  }
+
+  .text-stroke-white {
+    -webkit-text-stroke: 2px white;
+  }
+
+  .stroke-text {
+    -webkit-text-stroke: 1px black;
+  }
+
+  .stroke-text-thick {
+    -webkit-text-stroke: 3px black;
+  }
+
+  /* The "Neo Pattern" for empty images */
+  .bg-neo-pattern {
+    background-image: radial-gradient(circle, #000 2px, transparent 2.5px);
+    background-size: 10px 10px;
+  }
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-stroke-black {
+    -webkit-text-stroke: 1px black;
+    /* Thinner stroke for mobile */
+    color: transparent;
+  }
+
+  @media (min-width: 768px) {
+    .text-stroke-black {
+      -webkit-text-stroke: 2px black;
+    }
+  }
+
+  .text-stroke-0 {
+    -webkit-text-stroke: 0;
+  }
+
+  /* Prevent horizontal scroll on mobile */
+  body {
+    overflow-x: hidden;
+  }
+}
