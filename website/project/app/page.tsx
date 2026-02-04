@@ -11,7 +11,7 @@ import {
   type Variants,
 } from "framer-motion";
 
-// --- COMPONENTS (Keep your existing imports) ---
+// --- COMPONENTS ---
 import Navbar from "./components/navbar";
 import NeoButton from "./components/NeoButton";
 import NeoCard from "./components/NeoCard";
@@ -38,8 +38,13 @@ type Project = {
   tech: string[];
   description: string;
   imgSrc?: string;
-  projectLink?: string;
-  code?: string;
+
+  projectLink?: string; // live site (best)
+  code?: string;        // repo link
+
+  // automatic preview support
+  previewUrl?: string;  // computed or manual override
+  previewMode?: "iframe" | "stackblitz" | "none";
 };
 
 type Experience = {
@@ -67,7 +72,7 @@ type EducationItem = {
 type CertItem = {
   name: string;
   issuer: string;
-  date?: string; // keep optional to avoid “wrong dates”
+  date?: string;
   details: string;
 };
 
@@ -76,10 +81,43 @@ type CertItem = {
 ========================= */
 const LINKS = {
   email: "wasif.zaman1@gmail.com",
-  github: "https://github.com/wasif",
-  linkedin: "https://www.linkedin.com/in/YOUR_LINKEDIN",
+  github: "https://github.com/Wasif-ZA",
+  linkedin: "https://www.linkedin.com/in/wasif-zaman-4228b5245/",
   resume: "/resume.pdf",
 };
+
+/* =========================
+   PREVIEW HELPERS
+========================= */
+function isGithubRepo(url?: string) {
+  return !!url && /github\.com\/[^/]+\/[^/]+/i.test(url);
+}
+
+function toGithubParts(repoUrl: string) {
+  const m = repoUrl.match(/github\.com\/([^/]+)\/([^/#?]+)/i);
+  if (!m) return null;
+  return { user: m[1], repo: m[2].replace(/\.git$/i, "") };
+}
+
+function stackblitzPreview(repoUrl: string) {
+  const parts = toGithubParts(repoUrl);
+  if (!parts) return null;
+  // Embed mode gives a clean preview experience
+  return `https://stackblitz.com/github/${parts.user}/${parts.repo}?embed=1`;
+}
+
+function resolvePreview(project: Project) {
+  if (project.previewMode === "none") return null;
+  if (project.previewUrl) return project.previewUrl;
+  if (project.projectLink) return project.projectLink;
+
+  if (project.code && isGithubRepo(project.code)) {
+    const sb = stackblitzPreview(project.code);
+    if (sb) return sb;
+  }
+
+  return null;
+}
 
 /* =========================
    DATA
@@ -119,31 +157,55 @@ const TOOLBOX = [
 
 const PROJECTS: Project[] = [
   {
-    title: "Society Website",
+    title: "UTSBDSOC Website",
     tech: ["Next.js", "TypeScript", "Tailwind", "Firebase", "Framer Motion"],
     description:
-      "Society website rebuild with modern UI, responsive pages, and interactive features such as voting and media/gallery experiences.",
+      "Production society website with events, gallery, and a real-time voting platform (Graamy’s). Built reusable UI system, managed deployments, and maintained ongoing updates for committee needs.",
     imgSrc: "/project1.png",
-    projectLink: "https://utsbdsoc.com",
-    code: "#",
+    projectLink: "https://utbdsoc-website.vercel.app/home",
+    code: "https://github.com/UTBDSOC/UTBDSOC-website",
+    previewMode: "iframe",
   },
+
   {
-    title: "Bridge Control",
-    tech: ["Java", "ESP32", "IoT", "Agile"],
+    title: "GearBoxStudio",
+    tech: ["Next.js", "TypeScript", "Tailwind", "UI System"],
     description:
-      "Bridge control system project with safety logic concepts, sensor integration, and microcontroller coordination (ESP32/Arduino).",
-    code: "https://github.com/wasif/bridge",
+      "Template-first UI library + marketing site concept focused on reusable layout blueprints. Built modular sections/components for rapid site assembly and consistent design delivery.",
+    code: "https://github.com/Wasif-ZA/Gearboxstudio.git",
+    previewMode: "stackblitz",
   },
+
   {
-    title: "Motion Control",
-    tech: ["C++", "Arduino", "Embedded"],
+    title: "DecisionLog",
+    tech: ["Next.js", "TypeScript", "App Architecture"],
     description:
-      "Motion control prototype code focused on serial communication, safety constraints, and modular control flow.",
-    code: "#",
+      "Decision capture system concept (ADR-style) to log product/engineering decisions with structured metadata. Designed for fast entry, readability, and future automation integrations.",
+    code: "https://github.com/Wasif-ZA/decision.log.git",
+    previewMode: "stackblitz",
+  },
+
+  {
+    title: "Bridge Opening Control System",
+    tech: ["Java", "Embedded Systems", "ESP32", "Arduino", "Serial Comms"],
+    description:
+      "Automated bridge operation control logic with safety-first design: heartbeat monitoring, fail-safe handling, emergency-stop behavior, and microcontroller communication flow.",
+    projectLink: "https://bridge-opening-project.vercel.app",
+    code: "https://github.com/Wasif-ZA/BridgeOpeningProject.git",
+    previewMode: "iframe",
+  },
+
+  {
+    title: "BladeRunner (Engineering System Project)",
+    tech: ["Java", "Systems Design", "Documentation"],
+    description:
+      "Engineering project repository focusing on structured implementation and documentation. Emphasis on maintainable structure, clear modules, and reproducible setup for assessable delivery.",
+    code: "https://github.com/Wasif-ZA/BladeRunner.git",
+    previewMode: "none",
   },
 ];
 
-// Experience: phrased to be truthful without overclaiming metrics.
+
 const EXPERIENCE: Experience[] = [
   {
     company: "Optus",
@@ -166,7 +228,7 @@ const EXPERIENCE: Experience[] = [
     points: [
       "Led the website revamp direction and coordinated implementation tasks across the committee.",
       "Built and maintained frontend structure, components, and styling standards for consistency.",
-      "Translated the society’s branding direction into UI patterns and reusable layouts.",
+      "Translated the society's branding direction into UI patterns and reusable layouts.",
       "Created setup notes / handover documentation to support ongoing maintenance.",
     ],
     techStack: ["Next.js", "TypeScript", "UI System"],
@@ -195,7 +257,6 @@ const EDUCATION: EducationItem[] = [
   },
 ];
 
-// Dates removed/optional to avoid incorrect claims.
 const CERTIFICATES: CertItem[] = [
   {
     name: "Data Analytics Professional Certificate",
@@ -240,8 +301,6 @@ const staggerContainer: Variants = {
 /* =========================
    SUB-COMPONENTS
 ========================= */
-
-// Stable “random” per character (no re-randomizing every render)
 const StaggeredText = ({
   text,
   className,
@@ -253,7 +312,7 @@ const StaggeredText = ({
     () =>
       text.split("").map((char, i) => ({
         char,
-        rot: ((i * 7) % 11) - 5, // deterministic rotation: -5..+5-ish
+        rot: ((i * 7) % 11) - 5,
       })),
     [text]
   );
@@ -282,13 +341,13 @@ const StaggeredText = ({
   );
 };
 
-// Custom Cursor (desktop only). Fix: don’t hide cursor on mobile.
 const CustomCursor = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
 
   useEffect(() => {
-    const mouseMove = (e: MouseEvent) => setMousePosition({ x: e.clientX, y: e.clientY });
+    const mouseMove = (e: MouseEvent) =>
+      setMousePosition({ x: e.clientX, y: e.clientY });
 
     const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
@@ -329,7 +388,12 @@ const GrainOverlay = () => (
   <div className="fixed inset-0 pointer-events-none z-[40] opacity-[0.045] mix-blend-overlay">
     <svg className="w-full h-full">
       <filter id="noise">
-        <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch" />
+        <feTurbulence
+          type="fractalNoise"
+          baseFrequency="0.8"
+          numOctaves="4"
+          stitchTiles="stitch"
+        />
       </filter>
       <rect width="100%" height="100%" filter="url(#noise)" />
     </svg>
@@ -346,7 +410,6 @@ export default function Home() {
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
 
-  // Parallax for Hero
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const rotateX = useTransform(y, [-100, 100], [5, -5]);
@@ -361,7 +424,8 @@ export default function Home() {
   }
 
   const openModal = (project: Project) => {
-    setActiveProject(project);
+    const preview = resolvePreview(project);
+    setActiveProject({ ...project, previewUrl: preview || undefined });
     setModalOpen(true);
   };
 
@@ -387,7 +451,6 @@ export default function Home() {
       <Navbar />
       <GrainOverlay />
 
-      {/* Progress Bar */}
       <motion.div
         className="fixed top-0 left-0 right-0 h-2 bg-neo-primary origin-left z-[90] border-b-2 border-black"
         style={{ scaleX }}
@@ -398,7 +461,6 @@ export default function Home() {
         onMouseMove={handleMouseMove}
         className="relative flex min-h-screen flex-col justify-center border-b-[4px] border-black bg-white/50 pt-20 overflow-hidden"
       >
-        {/* Floating Elements */}
         <motion.div
           style={{ y: useTransform(scrollYProgress, [0, 1], [0, 500]) }}
           className="absolute top-20 right-[5%] w-24 h-24 md:w-32 md:h-32 border-[4px] border-black bg-neo-secondary z-0 rotate-12 opacity-80"
@@ -474,7 +536,6 @@ export default function Home() {
           </motion.div>
         </div>
 
-        {/* Scroll Indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -508,9 +569,7 @@ export default function Home() {
             viewport={{ once: true }}
             className="flex items-end justify-between gap-6 mb-16"
           >
-            <h2 className="text-5xl md:text-8xl font-black uppercase leading-none">
-              What I Do
-            </h2>
+            <h2 className="text-5xl md:text-8xl font-black uppercase leading-none">What I Do</h2>
             <span className="hidden md:inline-block font-mono font-bold bg-black text-white px-3 py-2 border-2 border-black shadow-neo-sm">
               SERVICES
             </span>
@@ -530,9 +589,7 @@ export default function Home() {
                     <s.icon className="w-8 h-8" />
                   </div>
                   <h3 className="text-3xl font-black uppercase mb-3">{s.title}</h3>
-                  <p className="font-mono font-bold text-sm leading-relaxed opacity-80">
-                    {s.desc}
-                  </p>
+                  <p className="font-mono font-bold text-sm leading-relaxed opacity-80">{s.desc}</p>
                 </NeoCard>
               </motion.div>
             ))}
@@ -598,9 +655,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <h3 className="text-3xl font-black uppercase mb-2 leading-none">
-                    {project.title}
-                  </h3>
+                  <h3 className="text-3xl font-black uppercase mb-2 leading-none">{project.title}</h3>
 
                   <div className="flex flex-wrap gap-2 mb-4">
                     {project.tech.map((t) => (
@@ -652,15 +707,19 @@ export default function Home() {
             whileInView="visible"
             viewport={{ once: true }}
           >
-            {TOOLBOX.map((tool, i) => (
+            {TOOLBOX.map((tool) => (
               <motion.span
                 key={tool}
                 variants={{
                   hidden: { opacity: 0, scale: 0 },
-                  visible: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 200 } },
+                  visible: {
+                    opacity: 1,
+                    scale: 1,
+                    transition: { type: "spring", stiffness: 200 },
+                  },
                 }}
                 whileHover={{ scale: 1.07, backgroundColor: "#fff", color: "#000" }}
-                className="text-lg md:text-3xl font-black uppercase border-2 border-white px-4 py-2 cursor-default select-none"
+                className="text-sm sm:text-lg md:text-2xl font-black uppercase border-2 border-white px-3 py-2 md:px-4 cursor-default select-none"
               >
                 {tool}
               </motion.span>
@@ -670,14 +729,15 @@ export default function Home() {
       </section>
 
       {/* --- HISTORY (XP_LOG) --- */}
-      <section id="history" className="py-24 bg-neo-bg relative border-b-[4px] border-black overflow-hidden">
+      <section
+        id="history"
+        className="py-24 bg-neo-bg relative border-b-[4px] border-black overflow-hidden"
+      >
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000010_1px,transparent_1px),linear-gradient(to_bottom,#00000010_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
 
         <div className="container mx-auto px-4 relative z-10">
           <div className="flex flex-col md:flex-row items-end justify-between mb-16 md:mb-20">
-            <h2 className="text-6xl md:text-9xl font-black uppercase leading-[0.8]">
-              XP_LOG
-            </h2>
+            <h2 className="text-6xl md:text-9xl font-black uppercase leading-[0.8]">XP_LOG</h2>
             <div className="flex items-center gap-2 font-mono font-bold bg-black text-white px-4 py-2 mt-4 md:mt-0">
               <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
               <span>SYSTEM_ONLINE</span>
@@ -685,7 +745,6 @@ export default function Home() {
           </div>
 
           <div className="relative max-w-5xl mx-auto">
-            {/* Central spine */}
             <div className="absolute left-[20px] md:left-1/2 top-0 bottom-0 w-[4px] bg-black/10 -translate-x-1/2">
               <motion.div
                 className="w-full bg-black origin-top"
@@ -707,12 +766,10 @@ export default function Home() {
                     className={`relative flex flex-col md:flex-row items-center ${isLeft ? "md:flex-row" : "md:flex-row-reverse"
                       }`}
                   >
-                    {/* Node */}
                     <div className="absolute left-[20px] md:left-1/2 -translate-x-1/2 w-8 h-8 bg-white border-[4px] border-black z-20 flex items-center justify-center">
                       <div className={`w-3 h-3 ${exp.color}`} />
                     </div>
 
-                    {/* Connector */}
                     <motion.div
                       className={`hidden md:block absolute top-1/2 h-[4px] bg-black z-10 ${isLeft ? "right-1/2 origin-right" : "left-1/2 origin-left"
                         }`}
@@ -723,20 +780,23 @@ export default function Home() {
                       style={{ width: "50px" }}
                     />
 
-                    {/* Card */}
                     <div className="w-full md:w-1/2 pl-12 md:pl-0 md:px-12">
                       <motion.div
                         initial={{ opacity: 0, y: 50, rotateX: -10 }}
                         whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
                         viewport={{ once: true, margin: "-100px" }}
-                        transition={{ type: "spring", stiffness: 100, damping: 20, delay: i * 0.08 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 100,
+                          damping: 20,
+                          delay: i * 0.08,
+                        }}
                         className="relative group"
                       >
-                        {/* Shadow block */}
                         <div className="absolute inset-0 translate-x-2 translate-y-2 bg-black transition-transform duration-200 group-hover:translate-x-3 group-hover:translate-y-3" />
 
-                        <div className="relative bg-white border-[3px] border-black overflow-hidden">
-                          <div className="bg-black text-white px-4 py-2 flex items-center justify-between border-b-[3px] border-black">
+                        <div className="relative bg-white border-[3px] border-black overflow-hidden flex flex-col md:min-h-[500px]">
+                          <div className="bg-black text-white px-4 py-2 flex items-center justify-between border-b-[3px] border-black shrink-0">
                             <div className="flex gap-2">
                               <div className="w-3 h-3 rounded-full bg-red-500 border border-white/20" />
                               <div className="w-3 h-3 rounded-full bg-yellow-400 border border-white/20" />
@@ -747,7 +807,7 @@ export default function Home() {
                             </span>
                           </div>
 
-                          <div className="px-6 py-6 md:px-8 md:py-8">
+                          <div className="px-6 py-6 md:px-8 md:py-8 flex flex-col flex-grow">
                             <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
                               <div>
                                 <h3 className="text-3xl md:text-4xl font-black uppercase leading-none mb-2">
@@ -759,7 +819,7 @@ export default function Home() {
                                   {exp.role}
                                 </span>
                               </div>
-                              <div className="font-mono text-xs md:text-sm font-bold bg-gray-100 px-3 py-1 border border-black whitespace-nowrap">
+                              <div className="font-mono text-xs md:text-sm font-bold bg-gray-100 px-3 py-1 border border-black text-center sm:text-right w-full sm:w-auto">
                                 {exp.period}
                               </div>
                             </div>
@@ -770,16 +830,14 @@ export default function Home() {
                                   key={`${exp.company}-pt-${j}`}
                                   className="flex items-start text-sm md:text-base font-bold opacity-90 leading-relaxed"
                                 >
-                                  <span className="mr-3 text-neo-primary text-lg leading-none">
-                                    »
-                                  </span>
+                                  <span className="mr-3 text-neo-primary text-lg leading-none">»</span>
                                   {pt}
                                 </li>
                               ))}
                             </ul>
 
                             {exp.techStack && (
-                              <div className="border-t-2 border-dashed border-black/20 pt-3">
+                              <div className="border-t-2 border-dashed border-black/20 pt-3 mt-auto">
                                 <p className="font-mono text-[10px] uppercase opacity-50 mb-2">
                                   Technicals:
                                 </p>
@@ -808,10 +866,10 @@ export default function Home() {
       </section>
 
       {/* --- FOOTER --- */}
-      <footer id="contact" className="py-20 bg-black text-neo-bg border-t-[4px] border-black relative overflow-hidden">
-        {/* Removed external bg URL to avoid build/CSP issues */}
-
-        {/* Education & Certs */}
+      <footer
+        id="contact"
+        className="py-20 bg-black text-neo-bg border-t-[4px] border-black relative overflow-hidden"
+      >
         <div className="container mx-auto px-4 relative z-10 mb-20 border-b-4 border-white/20 pb-16">
           <h2 className="text-4xl md:text-6xl font-black uppercase text-center text-white mb-12">
             Education & Certs
