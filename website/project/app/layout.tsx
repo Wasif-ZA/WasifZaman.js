@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -13,58 +13,65 @@ const geistMono = Geist_Mono({
 });
 
 const SITE_URL = "https://www.wasifzaman.tech";
-const TITLE = "Wasif Zaman — AI & Software Engineer";
-const DESCRIPTION =
-  "Software Engineer in Sydney shipping AI-powered products. Neo-brutalist portfolio — Next.js, TypeScript, Supabase, and the Claude API. Open to junior & graduate SWE roles.";
+const SITE_NAME = "Wasif Zaman";
+const SITE_TITLE = "Wasif Zaman — Software Engineer · Sydney";
+const SITE_DESC =
+  "Software Engineer shipping AI products in Sydney. Currently building Korvo, an AI job-outreach SaaS. Open to graduate SWE roles.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: TITLE,
-  description: DESCRIPTION,
+  title: {
+    default: SITE_TITLE,
+    template: "%s · Wasif Zaman",
+  },
+  description: SITE_DESC,
+  applicationName: SITE_NAME,
+  authors: [{ name: "Wasif Zaman", url: SITE_URL }],
+  creator: "Wasif Zaman",
   keywords: [
     "Wasif Zaman",
     "Software Engineer",
     "Sydney",
     "Next.js",
-    "TypeScript",
     "AI",
-    "Claude API",
-    "Supabase",
-    "Neo-brutalist",
+    "Korvo",
     "Portfolio",
+    "Neo-brutalist",
   ],
-  authors: [{ name: "Wasif Zaman", url: SITE_URL }],
-  creator: "Wasif Zaman",
   alternates: {
     canonical: SITE_URL,
   },
   openGraph: {
-    title: TITLE,
-    description: DESCRIPTION,
+    title: SITE_TITLE,
+    description: SITE_DESC,
     url: SITE_URL,
-    siteName: "Wasif Zaman",
+    siteName: SITE_NAME,
     locale: "en_AU",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: TITLE,
-    description: DESCRIPTION,
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
+    title: SITE_TITLE,
+    description: SITE_DESC,
+    creator: "@wasifzaman",
   },
   icons: {
     icon: "/wz-icon.png",
     apple: "/wz-icon.png",
   },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#FAF9F6" },
+    { media: "(prefers-color-scheme: dark)", color: "#050505" },
+  ],
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({

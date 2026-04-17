@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <rect width="100%" height="100%" fill="#FAF9F6"/>
+  <rect x="16" y="16" width="1168" height="768" fill="none" stroke="#000" stroke-width="8"/>
+  <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+    <circle cx="2" cy="2" r="1.5" fill="#000" opacity="0.35"/>
+  </pattern>
+  <rect x="16" y="16" width="1168" height="768" fill="url(#dots)" opacity="0.5"/>
+  
+        <circle cx="900" cy="260" r="170" fill="#CEFF1A" stroke="#000" stroke-width="6"/>
+        <polygon points="130,650 320,650 225,490" fill="#000"/>
+      
+  <rect x="60" y="90" width="380" height="60" fill="#000"/>
+  <text x="80" y="133" font-family="Courier New, monospace" font-weight="700" font-size="28" fill="#CEFF1A" letter-spacing="2">AI OUTREACH</text>
+  <text x="80" y="380" font-family="Inter, Helvetica, Arial, sans-serif" font-weight="900" font-size="180" fill="#000" letter-spacing="-6">KORVO</text>
+  <rect x="80" y="700" width="140" height="40" fill="#CEFF1A" stroke="#000" stroke-width="4"/>
+  <text x="96" y="728" font-family="Courier New, monospace" font-weight="700" font-size="20" fill="#000">WZ.</text>
+</svg>
