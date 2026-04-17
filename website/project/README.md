@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Wasif Zaman — Portfolio
 
-## Getting Started
+Neo-brutalist personal portfolio for [wasifzaman.tech](https://www.wasifzaman.tech).
 
-First, run the development server:
+## Stack
+
+- **Framework** Next.js 16 (App Router) + Turbopack
+- **Language** TypeScript
+- **Styling** Tailwind CSS v4 (`@theme inline` tokens in `app/globals.css`)
+- **Animation** Framer Motion
+- **Icons** lucide-react
+
+## Design identity
+
+Neo-brutalist, non-negotiable:
+- Off-white background (`--neo-bg: #FAF9F6`)
+- Hard 3px (or 4px for modals/section dividers) black borders
+- Offset black shadows (`shadow-neo`, `shadow-neo-lg`, `shadow-neo-sm`)
+- Bold uppercase type
+- Clashing accent colors: acid-green `--neo-primary`, hot-pink `--neo-secondary`, primary-blue `--neo-accent`
+
+Design tokens live in `app/globals.css` — do not add magic hex values in components.
+
+## Local setup
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm run start
+```
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start dev server with Turbopack |
+| `npm run build` | Production build |
+| `npm run start` | Serve production build |
+| `npm run lint` | Lint with `eslint-config-next` |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project layout
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+app/
+  components/        # NeoButton, NeoCard, NeoTabs, ProjectModal, Marquee, Navbar
+  globals.css        # Design tokens + marquee keyframes + stroke utilities
+  layout.tsx         # Root layout + site-wide metadata
+  page.tsx           # Single-page portfolio
+  opengraph-image.tsx  # /opengraph-image (edge runtime)
+  robots.ts          # /robots.txt
+  sitemap.ts         # /sitemap.xml
+public/
+  project images/    # Project screenshots
+```
 
-## Deploy on Vercel
+## Deploy
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Auto-deploys to Vercel from `main`. Branch previews build on push.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Credits
+
+Built by Wasif Zaman. Content licensed CC-BY 4.0 unless otherwise noted; code MIT.
