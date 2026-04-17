@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <rect width="100%" height="100%" fill="#FAF9F6"/>
+  <rect x="16" y="16" width="1168" height="768" fill="none" stroke="#000" stroke-width="8"/>
+  <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+    <circle cx="2" cy="2" r="1.5" fill="#000" opacity="0.35"/>
+  </pattern>
+  <rect x="16" y="16" width="1168" height="768" fill="url(#dots)" opacity="0.5"/>
+  
+        <rect x="850" y="180" width="220" height="240" fill="#0000FF" stroke="#000" stroke-width="6"/>
+        <path d="M 1070 240 h 50 a 40 40 0 0 1 0 80 h -50" fill="none" stroke="#000" stroke-width="6"/>
+        <rect x="870" y="200" width="180" height="30" fill="#000"/>
+      
+  <rect x="60" y="90" width="380" height="60" fill="#000"/>
+  <text x="80" y="133" font-family="Courier New, monospace" font-weight="700" font-size="28" fill="#0000FF" letter-spacing="2">RFID CUPS</text>
+  <text x="80" y="380" font-family="Inter, Helvetica, Arial, sans-serif" font-weight="900" font-size="180" fill="#000" letter-spacing="-6">REFILLABLE</text>
+  <rect x="80" y="700" width="140" height="40" fill="#0000FF" stroke="#000" stroke-width="4"/>
+  <text x="96" y="728" font-family="Courier New, monospace" font-weight="700" font-size="20" fill="#000">WZ.</text>
+</svg>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <rect width="100%" height="100%" fill="#FAF9F6"/>
+  <rect x="16" y="16" width="1168" height="768" fill="none" stroke="#000" stroke-width="8"/>
+  <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+    <circle cx="2" cy="2" r="1.5" fill="#000" opacity="0.35"/>
+  </pattern>
+  <rect x="16" y="16" width="1168" height="768" fill="url(#dots)" opacity="0.5"/>
+  
+        <polygon points="820,120 1090,120 955,340" fill="#FF00FF" stroke="#000" stroke-width="6"/>
+        <rect x="140" y="580" width="420" height="60" fill="#000"/>
+        <rect x="140" y="650" width="260" height="20" fill="#FF00FF" stroke="#000" stroke-width="3"/>
+      
+  <rect x="60" y="90" width="380" height="60" fill="#000"/>
+  <text x="80" y="133" font-family="Courier New, monospace" font-weight="700" font-size="28" fill="#FF00FF" letter-spacing="2">IOT CONTROL</text>
+  <text x="80" y="380" font-family="Inter, Helvetica, Arial, sans-serif" font-weight="900" font-size="180" fill="#000" letter-spacing="-6">BRIDGE</text>
+  <rect x="80" y="700" width="140" height="40" fill="#FF00FF" stroke="#000" stroke-width="4"/>
+  <text x="96" y="728" font-family="Courier New, monospace" font-weight="700" font-size="20" fill="#000">WZ.</text>
+</svg>
