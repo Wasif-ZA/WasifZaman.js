@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import dynamic from "next/dynamic";
 import {
   motion,
   useScroll,
@@ -16,7 +18,11 @@ import Navbar from "./components/navbar";
 import NeoButton from "./components/NeoButton";
 import NeoCard from "./components/NeoCard";
 import Marquee from "./components/Marquee";
-import { ProjectModal } from "./components/ProjectModal";
+
+const ProjectModal = dynamic(
+  () => import("./components/ProjectModal").then((m) => m.ProjectModal),
+  { ssr: false }
+);
 
 import {
   ArrowRight,
@@ -157,68 +163,65 @@ const TOOLBOX = [
 
 const PROJECTS: Project[] = [
   {
-    title: "UTSBDSOC Website",
-    tech: ["Next.js", "TypeScript", "Tailwind", "Firebase", "Framer Motion"],
+    title: "Korvo",
+    tech: ["Next.js 14", "TypeScript", "Supabase", "Prisma", "Claude API", "BullMQ", "Redis", "Stripe"],
     description:
-      "Production society website with events, gallery, and a real-time voting platform (Graamy’s). Built reusable UI system, managed deployments, and maintained ongoing updates for committee needs.",
-    imgSrc: "/project1.png",
+      "AI-powered job outreach SaaS. Automates personalised cold emails and application tracking for job seekers — handles scraping, AI personalisation, background queues, and Stripe billing.",
+    previewMode: "none",
+  },
+
+  {
+    title: "AutoDocs",
+    tech: ["TypeScript", "GitHub Actions", "Claude API", "CI/CD"],
+    description:
+      "AI-powered documentation pipeline wired into CI/CD. Auto-generates and updates project docs on every merge so engineering docs never fall behind the code.",
+    previewMode: "none",
+  },
+
+  {
+    title: "UTSBDSOC Election System",
+    tech: ["Next.js", "TypeScript", "Supabase", "Row-Level Security"],
+    description:
+      "Secure online voting platform built for ~300 UTSBDSOC members. Ballot integrity, audit logging, and locked results post-deadline.",
+    previewMode: "none",
+  },
+
+  {
+    title: "UTSBDSOC Website & Event Dashboard",
+    tech: ["Next.js", "TypeScript", "Supabase", "Prisma", "Resend", "Discord"],
+    description:
+      "Society site plus an internal event dashboard. Ticketing, transactional email via Resend, and live event status pushed to a committee Discord channel through webhooks.",
+    imgSrc: "/project%20images/utsbdsoc.png",
     projectLink: "https://utbdsoc-website.vercel.app/home",
     code: "https://github.com/UTBDSOC/UTBDSOC-website",
     previewMode: "iframe",
   },
 
   {
-    title: "GearBoxStudio",
-    tech: ["Next.js", "TypeScript", "Tailwind", "UI System"],
+    title: "Bridge Opening System",
+    tech: ["Arduino", "ESP32", "C++", "Embedded Systems"],
     description:
-      "Template-first UI library + marketing site concept focused on reusable layout blueprints. Built modular sections/components for rapid site assembly and consistent design delivery.",
-    code: "https://github.com/Wasif-ZA/Gearboxstudio.git",
-    previewMode: "stackblitz",
-  },
-
-  {
-    title: "DecisionLog",
-    tech: ["Next.js", "TypeScript", "App Architecture"],
-    description:
-      "Decision capture system concept (ADR-style) to log product/engineering decisions with structured metadata. Designed for fast entry, readability, and future automation integrations.",
-    code: "https://github.com/Wasif-ZA/decision.log.git",
-    previewMode: "stackblitz",
-  },
-
-  {
-    title: "Bridge Opening Control System",
-    tech: ["Java", "Embedded Systems", "ESP32", "Arduino", "Serial Comms"],
-    description:
-      "Automated bridge operation control logic with safety-first design: heartbeat monitoring, fail-safe handling, emergency-stop behavior, and microcontroller communication flow.",
+      "Embedded systems capstone: automated bridge opening with safety-first design. Heartbeat monitoring, emergency-stop, fail-safe handling, and microcontroller comms.",
     projectLink: "https://bridge-opening-project.vercel.app",
     code: "https://github.com/Wasif-ZA/BridgeOpeningProject.git",
     previewMode: "iframe",
-  },
-
-  {
-    title: "BladeRunner (Engineering System Project)",
-    tech: ["Java", "Systems Design", "Documentation"],
-    description:
-      "Engineering project repository focusing on structured implementation and documentation. Emphasis on maintainable structure, clear modules, and reproducible setup for assessable delivery.",
-    code: "https://github.com/Wasif-ZA/BladeRunner.git",
-    previewMode: "none",
   },
 ];
 
 
 const EXPERIENCE: Experience[] = [
   {
-    company: "Optus",
-    role: "Sales Consultant",
-    period: "Jul 2025 – Present",
+    company: "Lenovo",
+    role: "Hardware Deployment Technician",
+    period: "2025 – Present",
     color: "bg-neo-primary",
     points: [
-      "Troubleshot customer connectivity, SIM, and device issues using in-store systems and standard diagnostics.",
-      "Completed service activations and account updates through CRM workflows.",
-      "Handled escalations appropriately and documented issues clearly for follow-up.",
-      "Maintained clear communication under time pressure and high customer volume.",
+      "Deploy, image, and provision enterprise laptops and workstations for Lenovo clients on-site.",
+      "Diagnose hardware and firmware issues during rollouts; coordinate RMAs and escalate where needed.",
+      "Coordinate with asset management and logistics teams to hit tight deployment deadlines.",
+      "Document configuration steps and maintain consistent build standards across large rollouts.",
     ],
-    techStack: ["Troubleshooting", "CRM", "Customer Support"],
+    techStack: ["Hardware", "Imaging", "Enterprise Deployment"],
   },
   {
     company: "UTSBDSOC",
@@ -226,24 +229,25 @@ const EXPERIENCE: Experience[] = [
     period: "May 2025 – Present",
     color: "bg-neo-secondary",
     points: [
-      "Led the website revamp direction and coordinated implementation tasks across the committee.",
-      "Built and maintained frontend structure, components, and styling standards for consistency.",
-      "Translated the society's branding direction into UI patterns and reusable layouts.",
-      "Created setup notes / handover documentation to support ongoing maintenance.",
+      "Lead technical direction across the website revamp, internal tooling, and the election platform.",
+      "Built and maintained the frontend structure, component library, and styling standards.",
+      "Set up and maintain the event dashboard — Supabase, Prisma, Resend email, and Discord webhooks.",
+      "Wrote setup and handover docs so future committees can ship without losing context.",
     ],
-    techStack: ["Next.js", "TypeScript", "UI System"],
+    techStack: ["Next.js", "TypeScript", "Supabase", "Prisma"],
   },
   {
-    company: "Woolworths",
-    role: "Sales Assistant",
-    period: "Feb 2023 – Present",
+    company: "Optus",
+    role: "Sales Consultant",
+    period: "Jul 2025 – Present",
     color: "bg-neo-accent",
     points: [
-      "Assisted customers with checkout, self-serve, and everyday store operations.",
-      "Supported basic troubleshooting for POS / kiosk issues and escalated when required.",
-      "Worked efficiently in high-volume periods while maintaining accuracy.",
+      "Troubleshoot customer connectivity, SIM, and device issues using in-store diagnostics.",
+      "Complete service activations and account updates through CRM workflows.",
+      "Handle escalations and document issues clearly for follow-up.",
+      "Maintain clear communication under time pressure and high customer volume.",
     ],
-    techStack: ["POS", "Customer Service", "Ops"],
+    techStack: ["Troubleshooting", "CRM", "Customer Support"],
   },
 ];
 
@@ -251,9 +255,9 @@ const EDUCATION: EducationItem[] = [
   {
     institution: "Macquarie University",
     degree: "Bachelor of Engineering (Honours) in Software Engineering",
-    period: "Feb 2022 – Present",
+    period: "Feb 2022 – Jun 2027",
     details:
-      "Relevant Coursework: Data Structures, Algorithms, Database Systems, Operating Systems, Embedded Systems, Cloud Computing.",
+      "Coursework: Data Structures, Algorithms, Database Systems, Operating Systems, Embedded Systems, Cloud Computing.",
   },
 ];
 
@@ -500,10 +504,10 @@ export default function Home() {
               animate="visible"
               className="inline-block max-w-2xl text-lg md:text-2xl font-mono font-bold leading-tight mb-10 bg-white border-[3px] border-black p-4 md:p-6 shadow-neo transform rotate-1 hover:-rotate-1 transition-transform duration-300 text-left md:text-center"
             >
-              Software Engineer creating{" "}
-              <span className="bg-neo-accent text-white px-1 mx-1">raw</span> &{" "}
-              <span className="bg-neo-secondary text-white px-1 mx-1">robust</span>{" "}
-              digital experiences.
+              Software Engineer in Sydney shipping{" "}
+              <span className="bg-neo-accent text-white px-1 mx-1">AI</span>-powered products.{" "}
+              <span className="bg-neo-secondary text-white px-1 mx-1">Open</span> to junior &
+              graduate SWE roles.
             </motion.p>
 
             <motion.div
@@ -604,7 +608,7 @@ export default function Home() {
             <h2 className="text-6xl md:text-9xl font-black uppercase tracking-tighter leading-none">
               Works
             </h2>
-            <a href={LINKS.github} target="_blank" rel="noreferrer" className="hidden md:flex">
+            <a href={LINKS.github} target="_blank" rel="noreferrer noopener" className="hidden md:flex">
               <NeoButton variant="secondary" type="button">
                 <Github className="w-5 h-5 mr-2" /> GitHub
               </NeoButton>
@@ -633,12 +637,12 @@ export default function Home() {
                     aria-label={`Open ${project.title}`}
                   >
                     {project.imgSrc ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={project.imgSrc}
                         alt={`${project.title} preview`}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0"
-                        loading="lazy"
+                        fill
+                        sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
@@ -939,13 +943,13 @@ export default function Home() {
               </div>
             </a>
 
-            <a href={LINKS.linkedin} target="_blank" rel="noreferrer" className="group">
+            <a href={LINKS.linkedin} target="_blank" rel="noreferrer noopener" className="group">
               <div className="flex items-center justify-center gap-3 bg-white text-black border-[4px] border-transparent p-6 font-black uppercase text-xl group-hover:bg-[#0077b5] group-hover:text-white group-hover:border-black group-hover:-translate-y-2 group-hover:shadow-neo transition-all">
                 <Linkedin className="w-6 h-6" /> LinkedIn
               </div>
             </a>
 
-            <a href={LINKS.github} target="_blank" rel="noreferrer" className="group">
+            <a href={LINKS.github} target="_blank" rel="noreferrer noopener" className="group">
               <div className="flex items-center justify-center gap-3 bg-white text-black border-[4px] border-transparent p-6 font-black uppercase text-xl group-hover:bg-[#333] group-hover:text-white group-hover:border-black group-hover:-translate-y-2 group-hover:shadow-neo transition-all">
                 <Github className="w-6 h-6" /> GitHub
               </div>
