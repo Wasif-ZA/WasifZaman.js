@@ -18,13 +18,29 @@ export default function Navbar() {
                 </div>
 
                 {/* Desktop Menu */}
-                <div className="hidden md:flex gap-4 pointer-events-auto">
-                    <NeoButton size="sm" onClick={() => document.getElementById('contact')?.scrollIntoView()}>Let's Talk</NeoButton>
+                <div className="hidden md:flex gap-2 pointer-events-auto items-center">
+                    {menuItems.map((item) => (
+                        <a
+                            key={item}
+                            href={`#${item.toLowerCase()}`}
+                            className="bg-white border-[3px] border-black px-3 py-2 font-black uppercase text-sm shadow-neo-sm hover:bg-neo-primary active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+                        >
+                            {item}
+                        </a>
+                    ))}
+                    <NeoButton
+                        size="sm"
+                        variant="accent"
+                        onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+                    >
+                        Let&apos;s Talk
+                    </NeoButton>
                 </div>
 
                 {/* Mobile Toggle */}
                 <button
                     onClick={() => setIsOpen(true)}
+                    aria-label="Open menu"
                     className="md:hidden pointer-events-auto bg-white border-[3px] border-black p-2 shadow-neo active:translate-y-1 active:shadow-none transition-all"
                 >
                     <Menu className="w-6 h-6" />
@@ -43,6 +59,7 @@ export default function Navbar() {
                     >
                         <button
                             onClick={() => setIsOpen(false)}
+                            aria-label="Close menu"
                             className="absolute top-6 right-6 bg-neo-accent text-white border-[3px] border-black p-2 shadow-neo"
                         >
                             <X className="w-8 h-8" />
