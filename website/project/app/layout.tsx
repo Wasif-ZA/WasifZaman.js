@@ -12,24 +12,54 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_URL = "https://www.wasifzaman.tech";
+const TITLE = "Wasif Zaman — AI & Software Engineer";
+const DESCRIPTION =
+  "Software Engineer in Sydney shipping AI-powered products. Neo-brutalist portfolio — Next.js, TypeScript, Supabase, and the Claude API. Open to junior & graduate SWE roles.";
+
 export const metadata: Metadata = {
-  title: "Wasif Zaman - AI & Web Developer",
-  description: "Software Engineer creating raw & robust digital experiences. Specializing in Next.js, AI integration, and Neo-Brutalist design.",
+  metadataBase: new URL(SITE_URL),
+  title: TITLE,
+  description: DESCRIPTION,
+  keywords: [
+    "Wasif Zaman",
+    "Software Engineer",
+    "Sydney",
+    "Next.js",
+    "TypeScript",
+    "AI",
+    "Claude API",
+    "Supabase",
+    "Neo-brutalist",
+    "Portfolio",
+  ],
+  authors: [{ name: "Wasif Zaman", url: SITE_URL }],
+  creator: "Wasif Zaman",
+  alternates: {
+    canonical: SITE_URL,
+  },
   openGraph: {
-    title: "Wasif Zaman - AI & Web Developer",
-    description: "Software Engineer creating raw & robust digital experiences.",
-    url: "https://www.wasifzaman.tech", // Placeholder - adjust if actual domain is known
+    title: TITLE,
+    description: DESCRIPTION,
+    url: SITE_URL,
     siteName: "Wasif Zaman",
-    images: [
-      {
-        url: "/wz-icon.png", // Using the new icon as a placeholder OG image
-        width: 800,
-        height: 800,
-        alt: "Wasif Zaman AI Logo",
-      },
-    ],
-    locale: "en_US",
+    locale: "en_AU",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
   icons: {
     icon: "/wz-icon.png",
