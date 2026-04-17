@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useId, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import NeoButton from "./NeoButton";
+import NeoTabs, { NeoTabPanel, type NeoTab } from "./NeoTabs";
 import { X } from "lucide-react";
 
 type Project = {
@@ -11,16 +13,18 @@ type Project = {
     description: string;
     imgSrc?: string;
 
-    projectLink?: string; // live site
-    code?: string;        // repo
-    previewUrl?: string;  // computed in Home (projectLink or stackblitz)
-    previewMode?: "iframe" | "stackblitz" | "none";
+    projectLink?: string;
+    code?: string;
+    previewUrl?: string;
 };
 
 type Props = Project & {
     isOpen: boolean;
     setIsOpen: (open: boolean) => void;
 };
+
+const FOCUSABLE =
+    'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export function ProjectModal({
     isOpen,
@@ -33,30 +37,56 @@ export function ProjectModal({
     code,
     previewUrl,
 }: Props) {
-    const [tab, setTab] = useState<"preview" | "details">("preview");
+    const hasPreview = !!previewUrl;
+    const [tab, setTab] = useState<"preview" | "details">(hasPreview ? "preview" : "details");
     const [iframeLoaded, setIframeLoaded] = useState(false);
+    const panelRef = useRef<HTMLDivElement | null>(null);
+    const baseId = useId();
+
+    const tabs: NeoTab[] = useMemo(
+        () => [
+            { id: "preview", label: "Preview", disabled: !hasPreview, variant: "primary" },
+            { id: "details", label: "Details", variant: "accent" },
+        ],
+        [hasPreview]
+    );
 
     const slug = useMemo(
         () => title.toLowerCase().trim().replace(/\s+/g, "-"),
         [title]
     );
 
-    const hasPreview = !!previewUrl;
-
-    useEffect(() => {
-        const onKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape") setIsOpen(false);
-        };
-        window.addEventListener("keydown", onKeyDown);
-        return () => window.removeEventListener("keydown", onKeyDown);
-    }, [setIsOpen]);
-
-    // Reset loader when opening / switching projects
     useEffect(() => {
         if (!isOpen) return;
-        setIframeLoaded(false);
-        setTab(hasPreview ? "preview" : "details");
-    }, [isOpen, hasPreview, title]);
+
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                setIsOpen(false);
+                return;
+            }
+            if (e.key !== "Tab" || !panelRef.current) return;
+
+            const focusables = Array.from(
+                panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)
+            ).filter((el) => !el.hasAttribute("disabled") && el.tabIndex !== -1);
+            if (focusables.length === 0) return;
+
+            const first = focusables[0];
+            const last = focusables[focusables.length - 1];
+            const active = document.activeElement as HTMLElement | null;
+
+            if (e.shiftKey && active === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && active === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        };
+
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
+    }, [isOpen, setIsOpen]);
 
     return (
         <AnimatePresence>
@@ -68,6 +98,7 @@ export function ProjectModal({
                     exit={{ opacity: 0 }}
                     aria-modal="true"
                     role="dialog"
+                    aria-labelledby={`${baseId}-title`}
                 >
                     {/* Backdrop */}
                     <button
@@ -79,6 +110,7 @@ export function ProjectModal({
 
                     {/* Panel */}
                     <motion.div
+                        ref={panelRef}
                         className="relative w-full max-w-6xl bg-white border-[4px] border-black shadow-neo-lg overflow-hidden"
                         initial={{ y: 30, scale: 0.985, opacity: 0 }}
                         animate={{ y: 0, scale: 1, opacity: 1 }}
@@ -100,9 +132,9 @@ export function ProjectModal({
                                 type="button"
                                 onClick={() => setIsOpen(false)}
                                 className="border-2 border-white/20 hover:border-white px-2 py-1"
-                                aria-label="Close"
+                                aria-label="Close modal"
                             >
-                                <X className="w-4 h-4" />
+                                <X className="w-4 h-4" aria-hidden="true" />
                             </button>
                         </div>
 
@@ -111,7 +143,10 @@ export function ProjectModal({
                             {/* Header row */}
                             <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6">
                                 <div className="min-w-0">
-                                    <h3 className="text-4xl md:text-6xl font-black uppercase leading-none">
+                                    <h3
+                                        id={`${baseId}-title`}
+                                        className="text-4xl md:text-6xl font-black uppercase leading-none"
+                                    >
                                         {title}
                                     </h3>
 
@@ -127,32 +162,14 @@ export function ProjectModal({
                                     </div>
                                 </div>
 
-                                {/* Tabs */}
-                                <div className="flex border-[3px] border-black w-full lg:w-auto bg-white shrink-0">
-                                    <button
-                                        type="button"
-                                        onClick={() => setTab("preview")}
-                                        disabled={!hasPreview}
-                                        className={`px-4 py-2 font-mono font-bold text-xs uppercase border-r-[3px] border-black w-1/2 lg:w-auto transition-colors ${!hasPreview
-                                                ? "opacity-40 cursor-not-allowed"
-                                                : tab === "preview"
-                                                    ? "bg-neo-primary text-black"
-                                                    : "bg-white text-black hover:bg-neo-bg"
-                                            }`}
-                                    >
-                                        Preview
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setTab("details")}
-                                        className={`px-4 py-2 font-mono font-bold text-xs uppercase w-1/2 lg:w-auto transition-colors ${tab === "details"
-                                                ? "bg-neo-accent text-white"
-                                                : "bg-white text-black hover:bg-neo-bg"
-                                            }`}
-                                    >
-                                        Details
-                                    </button>
-                                </div>
+                                <NeoTabs
+                                    tabs={tabs}
+                                    value={tab}
+                                    onChange={(id) => setTab(id as "preview" | "details")}
+                                    ariaLabel="Project view"
+                                    idPrefix={baseId}
+                                    className="w-full lg:w-auto"
+                                />
                             </div>
 
                             {/* Action buttons */}
@@ -161,7 +178,7 @@ export function ProjectModal({
                                     <a
                                         href={projectLink}
                                         target="_blank"
-                                        rel="noreferrer"
+                                        rel="noreferrer noopener"
                                         className="w-full sm:w-auto"
                                     >
                                         <NeoButton
@@ -178,7 +195,7 @@ export function ProjectModal({
                                     <a
                                         href={code}
                                         target="_blank"
-                                        rel="noreferrer"
+                                        rel="noreferrer noopener"
                                         className="w-full sm:w-auto"
                                     >
                                         <NeoButton
@@ -195,7 +212,7 @@ export function ProjectModal({
                                     <a
                                         href={previewUrl}
                                         target="_blank"
-                                        rel="noreferrer"
+                                        rel="noreferrer noopener"
                                         className="w-full sm:w-auto"
                                     >
                                         <NeoButton
@@ -221,7 +238,11 @@ export function ProjectModal({
 
                             {/* Body */}
                             {tab === "preview" ? (
-                                <div className="border-[3px] border-black bg-white shadow-neo overflow-hidden">
+                                <NeoTabPanel
+                                    tabId="preview"
+                                    idPrefix={baseId}
+                                    className="border-[3px] border-black bg-white shadow-neo overflow-hidden"
+                                >
                                     {/* Browser bar */}
                                     <div className="bg-black text-white px-4 py-2 flex items-center justify-between border-b-[3px] border-black gap-3">
                                         <div className="flex items-center gap-2 min-w-0">
@@ -237,7 +258,7 @@ export function ProjectModal({
                                             <a
                                                 href={previewUrl}
                                                 target="_blank"
-                                                rel="noreferrer"
+                                                rel="noreferrer noopener"
                                                 className="font-mono text-[10px] underline hover:text-neo-primary whitespace-nowrap"
                                             >
                                                 Open in new tab
@@ -247,7 +268,6 @@ export function ProjectModal({
 
                                     {/* Preview area */}
                                     <div className="relative w-full bg-white">
-                                        {/* Loader */}
                                         {!iframeLoaded ? (
                                             <div className="absolute inset-0 z-10 bg-white">
                                                 <div className="h-full w-full p-6">
@@ -285,10 +305,13 @@ export function ProjectModal({
                                             </div>
                                         )}
                                     </div>
-                                </div>
+                                </NeoTabPanel>
                             ) : (
-                                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                                    {/* Details */}
+                                <NeoTabPanel
+                                    tabId="details"
+                                    idPrefix={baseId}
+                                    className="grid grid-cols-1 lg:grid-cols-5 gap-6"
+                                >
                                     <div className="lg:col-span-3 border-[3px] border-black bg-white shadow-neo p-6">
                                         <h4 className="text-2xl md:text-3xl font-black uppercase mb-4">
                                             What it is
@@ -297,7 +320,6 @@ export function ProjectModal({
                                             {description}
                                         </p>
 
-                                        {/* Links summary */}
                                         <div className="mt-6 border-t-2 border-dashed border-black/20 pt-4">
                                             <p className="font-mono text-[10px] uppercase opacity-60 mb-2">
                                                 Links
@@ -319,20 +341,21 @@ export function ProjectModal({
                                         </div>
                                     </div>
 
-                                    {/* Screenshot (ONLY if you actually have one) */}
                                     <div className="lg:col-span-2 border-[3px] border-black bg-white shadow-neo overflow-hidden">
                                         <div className="bg-black text-white px-4 py-2 border-b-[3px] border-black">
                                             <span className="font-mono text-xs opacity-80">SCREENSHOT</span>
                                         </div>
 
                                         {imgSrc ? (
-                                            // eslint-disable-next-line @next/next/no-img-element
-                                            <img
-                                                src={imgSrc}
-                                                alt={`${title} screenshot`}
-                                                className="w-full h-[260px] md:h-[340px] object-cover"
-                                                loading="lazy"
-                                            />
+                                            <div className="relative w-full h-[260px] md:h-[340px]">
+                                                <Image
+                                                    src={imgSrc}
+                                                    alt={`${title} screenshot`}
+                                                    fill
+                                                    sizes="(min-width: 1024px) 40vw, 100vw"
+                                                    className="object-cover"
+                                                />
+                                            </div>
                                         ) : (
                                             <div className="p-6">
                                                 <p className="font-mono text-xs opacity-70">
@@ -344,7 +367,7 @@ export function ProjectModal({
                                             </div>
                                         )}
                                     </div>
-                                </div>
+                                </NeoTabPanel>
                             )}
                         </div>
                     </motion.div>

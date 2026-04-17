@@ -30,9 +30,19 @@
   --color-neo-secondary: var(--neo-secondary);
   --color-neo-accent: var(--neo-accent);
 
+  --shadow-neo-sm: 3px 3px 0px 0px rgba(0, 0, 0, 1);
+  --shadow-neo: 5px 5px 0px 0px rgba(0, 0, 0, 1);
+  --shadow-neo-lg: 8px 8px 0px 0px rgba(0, 0, 0, 1);
+
   --font-sans: "Inter", "Helvetica Neue", sans-serif;
   --font-mono: "Courier New", Courier, monospace;
 }
+
+/*
+ * Border width convention:
+ *   border-[3px] — default for cards, buttons, inline elements
+ *   border-[4px] — section dividers (border-b-[4px]) and modals/overlays only
+ */
 
 body {
   background-color: var(--neo-bg);
@@ -78,6 +88,16 @@ body {
     background-image: radial-gradient(circle, #000 2px, transparent 2.5px);
     background-size: 10px 10px;
   }
+}
+
+@keyframes marquee-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+@keyframes marquee-right {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
 }
 
 @tailwind base;
