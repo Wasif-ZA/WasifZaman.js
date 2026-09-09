@@ -37,10 +37,33 @@ export default function NeoTabs({
     const fallback = useId();
     const prefix = idPrefix ?? fallback;
 
+    const selectable = tabs.filter((t) => !t.disabled);
+
+    function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+        const keys = ["ArrowRight", "ArrowLeft", "Home", "End"];
+        if (!keys.includes(e.key) || selectable.length === 0) return;
+        e.preventDefault();
+
+        const current = selectable.findIndex((t) => t.id === value);
+        const at =
+            e.key === "Home"
+                ? 0
+                : e.key === "End"
+                    ? selectable.length - 1
+                    : e.key === "ArrowRight"
+                        ? (current + 1) % selectable.length
+                        : (current - 1 + selectable.length) % selectable.length;
+
+        const next = selectable[at];
+        onChange(next.id);
+        document.getElementById(`${prefix}-tab-${next.id}`)?.focus();
+    }
+
     return (
         <div
             role="tablist"
             aria-label={ariaLabel}
+            onKeyDown={onKeyDown}
             className={`flex border-[3px] border-black bg-white shrink-0 ${className}`}
         >
             {tabs.map((tab, i) => {

@@ -5,16 +5,22 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import NeoButton from "./NeoButton";
 import NeoTabs, { NeoTabPanel, type NeoTab } from "./NeoTabs";
+import ArchDiagram, { type ArchSpec } from "./ArchDiagram";
 import { X } from "lucide-react";
 
 type Project = {
     title: string;
+    blurb?: string;
     tech: string[];
     description: string;
     imgSrc?: string;
+    imgNote?: string;
+    arch?: ArchSpec;
 
     projectLink?: string;
     code?: string;
+    altCode?: string;
+    altCodeLabel?: string;
     previewUrl?: string;
 };
 
@@ -30,11 +36,16 @@ export function ProjectModal({
     isOpen,
     setIsOpen,
     title,
+    blurb,
     tech,
     description,
     imgSrc,
+    imgNote,
+    arch,
     projectLink,
     code,
+    altCode,
+    altCodeLabel,
     previewUrl,
 }: Props) {
     const hasPreview = !!previewUrl;
@@ -58,6 +69,13 @@ export function ProjectModal({
 
     useEffect(() => {
         if (!isOpen) return;
+
+        // Without this, closing drops the keyboard user at the top of the
+        // document instead of back on the card they opened.
+        const opener = document.activeElement as HTMLElement | null;
+        const focusTimer = window.setTimeout(() => {
+            panelRef.current?.querySelector<HTMLElement>(FOCUSABLE)?.focus();
+        }, 0);
 
         const onKeyDown = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
@@ -85,7 +103,11 @@ export function ProjectModal({
         };
 
         window.addEventListener("keydown", onKeyDown);
-        return () => window.removeEventListener("keydown", onKeyDown);
+        return () => {
+            window.clearTimeout(focusTimer);
+            window.removeEventListener("keydown", onKeyDown);
+            opener?.focus?.();
+        };
     }, [isOpen, setIsOpen]);
 
     return (
@@ -111,7 +133,7 @@ export function ProjectModal({
                     {/* Panel */}
                     <motion.div
                         ref={panelRef}
-                        className="relative w-full max-w-6xl bg-white border-[4px] border-black shadow-neo-lg overflow-hidden"
+                        className="relative flex max-h-[92vh] w-full max-w-6xl flex-col overflow-y-auto overscroll-contain border-[4px] border-black bg-white shadow-neo-lg"
                         initial={{ y: 30, scale: 0.985, opacity: 0 }}
                         animate={{ y: 0, scale: 1, opacity: 1 }}
                         exit={{ y: 20, scale: 0.985, opacity: 0 }}
@@ -150,6 +172,12 @@ export function ProjectModal({
                                         {title}
                                     </h3>
 
+                                    {blurb ? (
+                                        <p className="mt-2 font-mono text-xs font-bold uppercase tracking-tight opacity-60">
+                                            {blurb}
+                                        </p>
+                                    ) : null}
+
                                     <div className="flex flex-wrap gap-2 mt-3">
                                         {tech.map((t) => (
                                             <span
@@ -184,7 +212,7 @@ export function ProjectModal({
                                         <NeoButton
                                             variant="primary"
                                             className="w-full justify-center"
-                                            type="button"
+                                            as="span"
                                         >
                                             Live Site
                                         </NeoButton>
@@ -201,9 +229,26 @@ export function ProjectModal({
                                         <NeoButton
                                             variant="secondary"
                                             className="w-full justify-center"
-                                            type="button"
+                                            as="span"
                                         >
                                             Repo
+                                        </NeoButton>
+                                    </a>
+                                ) : null}
+
+                                {altCode ? (
+                                    <a
+                                        href={altCode}
+                                        target="_blank"
+                                        rel="noreferrer noopener"
+                                        className="w-full sm:w-auto"
+                                    >
+                                        <NeoButton
+                                            variant="secondary"
+                                            className="w-full justify-center"
+                                            as="span"
+                                        >
+                                            {altCodeLabel ?? "Second repo"}
                                         </NeoButton>
                                     </a>
                                 ) : null}
@@ -218,7 +263,7 @@ export function ProjectModal({
                                         <NeoButton
                                             variant="base"
                                             className="w-full justify-center"
-                                            type="button"
+                                            as="span"
                                         >
                                             Open Preview
                                         </NeoButton>
@@ -343,18 +388,31 @@ export function ProjectModal({
 
                                     <div className="lg:col-span-2 border-[3px] border-black bg-white shadow-neo overflow-hidden">
                                         <div className="bg-black text-white px-4 py-2 border-b-[3px] border-black">
-                                            <span className="font-mono text-xs opacity-80">SCREENSHOT</span>
+                                            <span className="font-mono text-xs opacity-80">
+                                                {imgSrc ? "SCREENSHOT" : arch ? "ARCHITECTURE" : "SCREENSHOT"}
+                                            </span>
                                         </div>
 
                                         {imgSrc ? (
-                                            <div className="relative w-full h-[260px] md:h-[340px]">
-                                                <Image
-                                                    src={imgSrc}
-                                                    alt={`${title} screenshot`}
-                                                    fill
-                                                    sizes="(min-width: 1024px) 40vw, 100vw"
-                                                    className="object-cover"
-                                                />
+                                            <>
+                                                <div className="relative w-full h-[260px] md:h-[340px]">
+                                                    <Image
+                                                        src={imgSrc}
+                                                        alt={`${title} screenshot`}
+                                                        fill
+                                                        sizes="(min-width: 1024px) 40vw, 100vw"
+                                                        className="object-cover"
+                                                    />
+                                                </div>
+                                                {imgNote ? (
+                                                    <p className="border-t-[3px] border-black px-4 py-2 font-mono text-[11px] leading-snug opacity-70">
+                                                        {imgNote}
+                                                    </p>
+                                                ) : null}
+                                            </>
+                                        ) : arch ? (
+                                            <div className="h-[260px] w-full md:h-[340px]">
+                                                <ArchDiagram spec={arch} />
                                             </div>
                                         ) : (
                                             <div className="p-6">

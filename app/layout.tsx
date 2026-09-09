@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { SITE_URL, SITE_TITLE, SITE_DESCRIPTION } from "./lib/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,10 +13,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const SITE_URL = "https://www.wasifzaman.tech";
-const TITLE = "Wasif Zaman — AI & Software Engineer";
-const DESCRIPTION =
-  "Software Engineer in Sydney shipping AI-powered products. Neo-brutalist portfolio — Next.js, TypeScript, Supabase, and the Claude API. Open to junior & graduate SWE roles.";
+const TITLE = SITE_TITLE;
+const DESCRIPTION = SITE_DESCRIPTION;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -27,10 +26,10 @@ export const metadata: Metadata = {
     "Sydney",
     "Next.js",
     "TypeScript",
-    "AI",
-    "Claude API",
-    "Supabase",
-    "Neo-brutalist",
+    "C++",
+    "Python",
+    "Macquarie University",
+    "Graduate Software Engineer",
     "Portfolio",
   ],
   authors: [{ name: "Wasif Zaman", url: SITE_URL }],

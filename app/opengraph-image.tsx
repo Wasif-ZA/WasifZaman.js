@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "Wasif Zaman — AI & Software Engineer";
+export const alt = "Wasif Zaman — Software Engineer, Sydney";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -67,7 +67,7 @@ export default function OpengraphImage() {
                         maxWidth: 900,
                     }}
                 >
-                    Software Engineer in Sydney shipping AI products.
+                    Software Engineering (Honours), Macquarie University 2027.
                 </div>
             </div>
         ),

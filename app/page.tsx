@@ -9,6 +9,8 @@ import {
   useSpring,
   useTransform,
   useMotionValue,
+  useReducedMotion,
+  MotionConfig,
   AnimatePresence,
   type Variants,
 } from "framer-motion";
@@ -18,6 +20,7 @@ import Navbar from "./components/navbar";
 import NeoButton from "./components/NeoButton";
 import NeoCard from "./components/NeoCard";
 import Marquee from "./components/Marquee";
+import ArchDiagram from "./components/ArchDiagram";
 
 const ProjectModal = dynamic(
   () => import("./components/ProjectModal").then((m) => m.ProjectModal),
@@ -32,31 +35,47 @@ import {
   Github,
   Globe,
   Database,
-  Layout,
+  Cpu,
   ChevronDown,
+  ExternalLink,
 } from "lucide-react";
 
 /* =========================
    TYPES
 ========================= */
+// A stage is one node, or an array of nodes that run in parallel.
+type ArchStage = string | string[];
+
+type ArchSpec = {
+  stages: ArchStage[];
+  note?: string;
+};
+
 type Project = {
   title: string;
+  blurb: string;
   tech: string[];
   description: string;
+
   imgSrc?: string;
+  imgNote?: string;   // caption stating what the screenshot actually is
+  arch?: ArchSpec;    // drawn instead of a screenshot when there is no UI
 
   projectLink?: string; // live site (best)
   code?: string;        // repo link
+  altCode?: string;     // second repo, when the work spans two
+  altCodeLabel?: string;
 
-  // automatic preview support
-  previewUrl?: string;  // computed or manual override
-  previewMode?: "iframe" | "stackblitz" | "none";
+  previewUrl?: string;
+  previewMode?: "iframe" | "none";
 };
 
 type Experience = {
   company: string;
+  fullName: string;
   role: string;
   period: string;
+  location: string;
   color: string;
   points: string[];
   techStack?: string[];
@@ -95,103 +114,102 @@ const LINKS = {
 /* =========================
    PREVIEW HELPERS
 ========================= */
-function isGithubRepo(url?: string) {
-  return !!url && /github\.com\/[^/]+\/[^/]+/i.test(url);
-}
-
-function toGithubParts(repoUrl: string) {
-  const m = repoUrl.match(/github\.com\/([^/]+)\/([^/#?]+)/i);
-  if (!m) return null;
-  return { user: m[1], repo: m[2].replace(/\.git$/i, "") };
-}
-
-function stackblitzPreview(repoUrl: string) {
-  const parts = toGithubParts(repoUrl);
-  if (!parts) return null;
-  // Embed mode gives a clean preview experience
-  return `https://stackblitz.com/github/${parts.user}/${parts.repo}?embed=1`;
-}
-
 function resolvePreview(project: Project) {
   if (project.previewMode === "none") return null;
   if (project.previewUrl) return project.previewUrl;
   if (project.projectLink) return project.projectLink;
-
-  if (project.code && isGithubRepo(project.code)) {
-    const sb = stackblitzPreview(project.code);
-    if (sb) return sb;
-  }
-
   return null;
 }
 
 /* =========================
    DATA
+
+   Every claim below is checked against resume.pdf. Every URL returned 200 when
+   last verified; repo links are never inferred from a project name.
 ========================= */
-const SERVICES: Service[] = [
+const FOCUS_AREAS: Service[] = [
   {
-    title: "Web Development",
-    icon: Globe,
-    desc: "React, Next.js, and Tailwind builds that are fast, accessible, and brutal.",
-  },
-  {
-    title: "UI/UX Design",
-    icon: Layout,
-    desc: "High-impact design systems in Figma with strong rules (and selective rule-breaking).",
-  },
-  {
-    title: "Backend Systems",
+    title: "Backend & Data Pipelines",
     icon: Database,
-    desc: "APIs, database design, and server-side logic with clean structure and maintainability.",
+    desc: "Python on Azure Functions rendering participant PDF reports from longitudinal survey data, where thousands have to come out correct without a human checking each one.",
+  },
+  {
+    title: "Full-Stack Product",
+    icon: Globe,
+    desc: "Next.js and TypeScript on Supabase and Prisma. Row-level security, queue-backed jobs and OAuth, shipped to real users rather than to a demo.",
+  },
+  {
+    title: "Systems & Embedded",
+    icon: Cpu,
+    desc: "C++20 bin-packing and real-time ESP32 control logic, both built against a written contract other teams could work from before the code existed.",
   },
 ];
 
+// Each line is a fact a reader can go and check, not a self-description.
+const HERO_PROOF = [
+  "C++20 3D bin-packing solver",
+  "Awards voting platform, ~300 members",
+  "4-agent BullMQ pipeline",
+  "Real-time ESP32 control",
+];
+
 const TOOLBOX = [
-  "Next.js",
-  "React",
   "TypeScript",
-  "Tailwind",
-  "Framer Motion",
+  "Python",
+  "C++20",
+  "Java",
+  "SQL",
+  "React",
+  "Next.js",
   "Node.js",
+  "three.js",
+  "Tailwind",
+  "Prisma",
   "PostgreSQL",
-  "Figma",
-  "Git",
+  "Supabase",
+  "Azure Functions",
+  "Redis",
   "Docker",
-  "AWS",
-  "Vercel",
+  "GitHub Actions",
 ];
 
 const PROJECTS: Project[] = [
   {
+    title: "DynamicFit",
+    blurb: "3D bin-packing solver with a browser visualiser",
+    tech: ["C++20", "three.js", "JSON Schema", "React", "Python"],
+    description:
+      "Three-dimensional bin packing, an NP-hard problem, solved in C++20 and handed back as a real-time three.js scene. I designed the JSON-Schema contract two other teams built against before the solver existed, then pinned it with 11 render fixtures over 7 invariants so a solver change cannot silently break the 3D view.",
+    imgSrc: "/projects/dynamicfit.jpg",
+    imgNote: "Real solver output: a 250-item order packed into 11 cartons.",
+    code: "https://github.com/Wasif-ZA/dynamic-fit",
+    altCode: "https://github.com/Wasif-ZA/DynamicSolver",
+    altCodeLabel: "Solver",
+    previewMode: "none",
+  },
+
+  {
     title: "Korvo",
-    tech: ["Next.js 14", "TypeScript", "Supabase", "Prisma", "Claude API", "BullMQ", "Redis", "Stripe"],
+    blurb: "Agentic job-outreach platform",
+    tech: ["Next.js", "TypeScript", "Supabase", "Claude API", "BullMQ", "Redis", "Stripe"],
     description:
-      "AI-powered job outreach SaaS. Automates personalised cold emails and application tracking for job seekers — handles scraping, AI personalisation, background queues, and Stripe billing.",
+      "Four Claude agents run as a BullMQ DAG: a contact finder, an email guesser and a research agent feed a drafter, with the two middle agents in parallel before the drafter consolidates their output. Row-level security for per-user data isolation, Stripe subscriptions, and Gmail OAuth so paying users send from their own inbox.",
+    arch: {
+      stages: ["Contact Finder", ["Email Guesser", "Research Agent"], "Drafter", "Gmail Send"],
+      note: "BullMQ DAG on Redis · 4 Claude agents",
+    },
+    code: "https://github.com/Wasif-ZA/Korvo",
     previewMode: "none",
   },
 
   {
-    title: "AutoDocs",
-    tech: ["TypeScript", "GitHub Actions", "Claude API", "CI/CD"],
+    title: "UTSBDSOC Platform",
+    blurb: "Society site and the Graamys awards voting flow",
+    tech: ["Next.js", "TypeScript", "Supabase", "Prisma", "Headless CMS"],
     description:
-      "AI-powered documentation pipeline wired into CI/CD. Auto-generates and updates project docs on every merge so engineering docs never fall behind the code.",
-    previewMode: "none",
-  },
-
-  {
-    title: "UTSBDSOC Election System",
-    tech: ["Next.js", "TypeScript", "Supabase", "Row-Level Security"],
-    description:
-      "Secure online voting platform built for ~300 UTSBDSOC members. Ballot integrity, audit logging, and locked results post-deadline.",
-    previewMode: "none",
-  },
-
-  {
-    title: "UTSBDSOC Website & Event Dashboard",
-    tech: ["Next.js", "TypeScript", "Supabase", "Prisma", "Resend", "Discord"],
-    description:
-      "Society site plus an internal event dashboard. Ticketing, transactional email via Resend, and live event status pushed to a committee Discord channel through webhooks.",
-    imgSrc: "/project%20images/utsbdsoc.png",
+      "The society website and internal tooling for roughly 300 members. Shipped the Graamys awards platform end to end in a two-week sprint: nine categories, a voting flow with duplicate-vote prevention, and an audit trail the committee reviews after each cycle. A headless CMS lets non-technical committee members publish updates without a developer in the loop.",
+    imgSrc: "/projects/utsbdsoc.jpg",
+    imgNote: "The live site. The Graamys voting entry point sits top right.",
     projectLink: "https://utbdsoc-website.vercel.app/home",
     code: "https://github.com/UTBDSOC/UTBDSOC-website",
     previewMode: "iframe",
@@ -199,65 +217,139 @@ const PROJECTS: Project[] = [
 
   {
     title: "Bridge Opening System",
-    tech: ["Arduino", "ESP32", "C++", "Embedded Systems"],
+    blurb: "Engineering capstone, scale-model drawbridge",
+    tech: ["C++", "ESP32", "Arduino", "Next.js", "Real-time control"],
     description:
-      "Embedded systems capstone: automated bridge opening with safety-first design. Heartbeat monitoring, emergency-stop, fail-safe handling, and microcontroller comms.",
+      "Control logic coordinating six sensors and four actuators across two microcontrollers, polling sensors and driving motors in real time. Built the safety layer: collision detection, positional limit enforcement, weight-based load sensing and an emergency stop, all inside the real-time response budget. Owned the whole software side alongside mechanical and electrical engineering students.",
+    imgSrc: "/projects/bridge-opening.jpg",
+    imgNote: "The live console. Next.js edge API to ESP32 gateway to Arduino.",
     projectLink: "https://bridge-opening-project.vercel.app",
-    code: "https://github.com/Wasif-ZA/BridgeOpeningProject.git",
+    code: "https://github.com/Wasif-ZA/BridgeOpeningProject",
     previewMode: "iframe",
+  },
+
+  {
+    title: "BladeRunner",
+    blurb: "Distributed carriage control system",
+    tech: ["Java", "Next.js", "ESP32-S3", "UDP / JSON"],
+    description:
+      "A distributed control system where a Java carriage control program drives ESP32-S3 hardware over a UDP/JSON protocol, coordinated by a master orchestrator and operated from a Next.js console.",
+    imgSrc: "/projects/bladerunner.jpg",
+    imgNote: "The live operator console and its control chain.",
+    projectLink: "https://blade-runner-flax.vercel.app",
+    code: "https://github.com/Wasif-ZA/BladeRunner",
+    previewMode: "iframe",
+  },
+
+  {
+    title: "AutoDocs",
+    blurb: "AI documentation pipeline for TypeScript",
+    tech: ["TypeScript", "AST analysis", "GitHub Actions", "Docker", "OpenAI API"],
+    description:
+      "A CI pipeline that parses TypeScript source into an AST, prompts a model from the structure it finds, and validates every response against a JSON schema before it lands, retrying when it does not. Incremental processing and token-aware chunking re-document only changed files per commit, which is what makes it cheap enough to run on every push.",
+    arch: {
+      stages: ["TS Source", "AST Parse", "Model Prompt", "Schema Check", "Commit Docs"],
+      note: "Retries on schema failure · only changed files per commit",
+    },
+    code: "https://github.com/Wasif-ZA/AutoDocs",
+    previewMode: "none",
+  },
+
+  {
+    title: "DecisionLog",
+    blurb: "Architecture decision record tracker",
+    tech: ["Next.js", "TypeScript", "Supabase", "Prisma", "Tailwind"],
+    description:
+      "Full-stack tool for tracking architecture decisions with version history, stakeholder tagging and impact assessments, built for the problem of teams losing the reasoning when people rotate off. Full-text search with fuzzy matching and filters, so a past decision surfaces in seconds instead of an archaeology dig through old documents and chat threads.",
+    arch: {
+      stages: ["Decision", "Version History", "Stakeholder Tags", "Fuzzy Search"],
+      note: "Postgres full-text search · Prisma on Supabase",
+    },
+    code: "https://github.com/Wasif-ZA/decision.log",
+    previewMode: "none",
+  },
+
+  {
+    title: "GearBoxStudio",
+    blurb: "UI component library and design system",
+    tech: ["Next.js", "TypeScript", "Supabase", "Prisma", "Tailwind"],
+    description:
+      "Base primitives and a layered component hierarchy, so a new page layout comes together without duplicating styles across the codebase. Supabase on the backend with Prisma on the data layer, OAuth for authentication, and real-time subscriptions so connected clients see changes without a manual refresh.",
+    arch: {
+      stages: ["Primitives", "Composites", "Layouts", "Realtime Sync"],
+      note: "OAuth · Supabase realtime subscriptions",
+    },
+    code: "https://github.com/Wasif-ZA/Gearboxstudio",
+    previewMode: "none",
   },
 ];
 
-
 const EXPERIENCE: Experience[] = [
   {
-    company: "Lenovo",
-    role: "Hardware Deployment Technician",
-    period: "2025 – Present",
+    company: "ACU",
+    fullName: "Australian Catholic University",
+    role: "Research Software Engineer Intern",
+    period: "Apr 2026 – Present",
+    location: "Institute for Positive Psychology and Education, Sydney",
     color: "bg-neo-primary",
     points: [
-      "Deploy, image, and provision enterprise laptops and workstations for Lenovo clients on-site.",
-      "Diagnose hardware and firmware issues during rollouts; coordinate RMAs and escalate where needed.",
-      "Coordinate with asset management and logistics teams to hit tight deployment deadlines.",
-      "Document configuration steps and maintain consistent build standards across large rollouts.",
+      "Build and extend a Python service on Azure Functions that renders individual participant PDF reports from longitudinal survey data, where thousands must come out correct without a human checking each one.",
+      "Set the requirements for a redesigned participant report with the research team, then put a mockup in front of them before writing code, so feedback landed while changes were still cheap.",
+      "Drafting the software requirements and design specifications for the aggregate reporting track, so the build has a document to be checked against rather than a conversation to remember.",
+      "Work under a research ethics protocol that keeps identifiable data off external services, and to a team rule that AI writes either the implementation or the tests but never both.",
     ],
-    techStack: ["Hardware", "Imaging", "Enterprise Deployment"],
+    techStack: ["Python", "Azure Functions", "PDF Rendering", "Requirements"],
   },
   {
     company: "UTSBDSOC",
-    role: "IT Director",
+    fullName: "UTS Bangladeshi Society",
+    role: "Technical Lead / IT Director",
     period: "May 2025 – Present",
+    location: "Sydney",
     color: "bg-neo-secondary",
     points: [
-      "Lead technical direction across the website revamp, internal tooling, and the election platform.",
-      "Built and maintained the frontend structure, component library, and styling standards.",
-      "Set up and maintain the event dashboard — Supabase, Prisma, Resend email, and Discord webhooks.",
-      "Wrote setup and handover docs so future committees can ship without losing context.",
+      "Shipped the Graamys awards platform end to end in a two-week sprint: nine categories, a voting flow with duplicate-vote prevention, and an audit trail the committee reviews after each cycle.",
+      "Own the society Next.js website and internal tooling for roughly 300 members, with a headless CMS so non-technical committee members publish event updates without a developer in the loop.",
+      "Turn what the Events, Marketing and Creative teams ask for into scoped features, holding the line on scope so the codebase does not fill up with work nobody asked for.",
     ],
     techStack: ["Next.js", "TypeScript", "Supabase", "Prisma"],
   },
   {
-    company: "Optus",
-    role: "Sales Consultant",
-    period: "Jul 2025 – Present",
+    company: "Lenovo",
+    fullName: "Lenovo",
+    role: "Desktop Rollout Engineer",
+    period: "Apr 2026 – Present",
+    location: "Sydney",
     color: "bg-neo-accent",
     points: [
-      "Troubleshoot customer connectivity, SIM, and device issues using in-store diagnostics.",
-      "Complete service activations and account updates through CRM workflows.",
-      "Handle escalations and document issues clearly for follow-up.",
-      "Maintain clear communication under time pressure and high customer volume.",
+      "Deploy and configure enterprise desktop hardware on a client site in the Sydney CBD, scheduling rollouts with the service team so the business keeps running through the change.",
+      "Provision workstations from standardised images and keep the asset inventory accurate across the client fleet, tracking every deployment and replacement.",
+      "Triage hardware faults with the service coordinator and write up the resolutions, so the same fault costs the next technician minutes instead of an afternoon.",
     ],
-    techStack: ["Troubleshooting", "CRM", "Customer Support"],
+    techStack: ["Imaging", "Asset Management", "Fault Triage"],
+  },
+  {
+    company: "Optus",
+    fullName: "Optus",
+    role: "Sales Consultant",
+    period: "Jul – Dec 2025",
+    location: "Sydney",
+    color: "bg-neo-primary",
+    points: [
+      "Sold Optus products and services by reviewing each customer existing account and combining current offers, plans and bundles into something that actually fit what they used.",
+      "Grew accounts through consultative upsell and cross-sell on inbound interactions, consistently beating shift targets.",
+    ],
+    techStack: ["Consultative Sales", "CRM"],
   },
 ];
 
 const EDUCATION: EducationItem[] = [
   {
     institution: "Macquarie University",
-    degree: "Bachelor of Engineering (Honours) in Software Engineering",
+    degree: "Bachelor of Engineering (Honours), Software Engineering",
     period: "Feb 2022 – Jun 2027",
     details:
-      "Coursework: Data Structures, Algorithms, Database Systems, Operating Systems, Embedded Systems, Cloud Computing.",
+      "Degree conferred Sep 2027. Coursework: Data Structures & Algorithms, Distributed Systems, Operating Systems, Computer Networks, Database Systems, Object-Oriented Programming, Cloud Computing, Software Engineering Practices, Embedded Systems, Agile Project Management, Honours Research Thesis.",
   },
 ];
 
@@ -275,7 +367,7 @@ const CERTIFICATES: CertItem[] = [
   {
     name: "Programming with JavaScript",
     issuer: "Meta",
-    details: "DOM basics, JSON, async patterns, debugging fundamentals.",
+    details: "DOM basics, JSON, async patterns, and debugging fundamentals.",
   },
 ];
 
@@ -312,6 +404,7 @@ const StaggeredText = ({
   text: string;
   className?: string;
 }) => {
+  const reduce = useReducedMotion();
   const chars = useMemo(
     () =>
       text.split("").map((char, i) => ({
@@ -327,16 +420,20 @@ const StaggeredText = ({
         <motion.span
           key={`${char}-${i}`}
           className="inline-block"
-          initial={{ y: "100%" }}
+          initial={reduce ? false : { y: "100%" }}
           animate={{ y: 0 }}
-          transition={{ duration: 0.5, delay: i * 0.05, ease: "backOut" }}
-          whileHover={{
-            y: -15,
-            rotate: rot,
-            color: "#FF5D01",
-            scale: 1.08,
-            transition: { duration: 0.12 },
-          }}
+          transition={reduce ? { duration: 0 } : { duration: 0.5, delay: i * 0.05, ease: "backOut" }}
+          whileHover={
+            reduce
+              ? undefined
+              : {
+                  y: -15,
+                  rotate: rot,
+                  color: "#FF5D01",
+                  scale: 1.08,
+                  transition: { duration: 0.12 },
+                }
+          }
         >
           {char === " " ? "\u00A0" : char}
         </motion.span>
@@ -346,6 +443,7 @@ const StaggeredText = ({
 };
 
 const CustomCursor = () => {
+  const reduce = useReducedMotion();
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
 
@@ -372,6 +470,8 @@ const CustomCursor = () => {
       window.removeEventListener("mouseover", handleMouseOver);
     };
   }, []);
+
+  if (reduce) return null;
 
   return (
     <motion.div
@@ -408,6 +508,7 @@ const GrainOverlay = () => (
    PAGE
 ========================= */
 export default function Home() {
+  const reduceMotion = useReducedMotion();
   const [modalOpen, setModalOpen] = useState(false);
   const [activeProject, setActiveProject] = useState<Project | null>(null);
 
@@ -420,6 +521,7 @@ export default function Home() {
   const rotateY = useTransform(x, [-100, 100], [-5, 5]);
 
   function handleMouseMove(event: React.MouseEvent<HTMLDivElement>) {
+    if (reduceMotion) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
@@ -450,6 +552,7 @@ export default function Home() {
   const year = useMemo(() => new Date().getFullYear(), []);
 
   return (
+    <MotionConfig reducedMotion="user">
     <main className="min-h-screen bg-neo-bg text-neo-text overflow-x-hidden selection:bg-black selection:text-white cursor-auto md:cursor-none">
       <CustomCursor />
       <Navbar />
@@ -462,6 +565,7 @@ export default function Home() {
 
       {/* --- HERO --- */}
       <section
+        id="top"
         onMouseMove={handleMouseMove}
         className="relative flex min-h-screen flex-col justify-center border-b-[4px] border-black bg-white/50 pt-20 overflow-hidden"
       >
@@ -502,38 +606,65 @@ export default function Home() {
               variants={fadeInUp}
               initial="hidden"
               animate="visible"
-              className="inline-block max-w-2xl text-lg md:text-2xl font-mono font-bold leading-tight mb-10 bg-white border-[3px] border-black p-4 md:p-6 shadow-neo transform rotate-1 hover:-rotate-1 transition-transform duration-300 text-left md:text-center"
+              className="mx-auto mb-6 inline-block max-w-3xl border-[3px] border-black bg-white p-4 text-left font-mono text-base font-bold leading-snug shadow-neo md:p-6 md:text-center md:text-xl"
             >
-              Software Engineer in Sydney shipping{" "}
-              <span className="bg-neo-accent text-white px-1 mx-1">AI</span>-powered products.{" "}
-              <span className="bg-neo-secondary text-white px-1 mx-1">Open</span> to junior &
-              graduate SWE roles.
+              Software Engineering{" "}
+              <span className="bg-neo-primary px-1 text-black">(Honours)</span> at Macquarie
+              University, graduating 2027. Currently a research software engineer intern at{" "}
+              <span className="bg-neo-primary px-1 text-black">ACU</span>, building the Python
+              pipeline that renders participant reports from longitudinal survey data.
             </motion.p>
+
+            <motion.ul
+              variants={fadeInUp}
+              initial="hidden"
+              animate="visible"
+              className="mx-auto mb-8 flex max-w-3xl flex-wrap justify-center gap-2"
+            >
+              {HERO_PROOF.map((p) => (
+                <li
+                  key={p}
+                  className="border-2 border-black bg-neo-bg px-3 py-1.5 font-mono text-[11px] font-black uppercase tracking-tight md:text-xs"
+                >
+                  {p}
+                </li>
+              ))}
+            </motion.ul>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center"
+              className="flex flex-col justify-center gap-4 sm:flex-row"
             >
-              <a href={`mailto:${LINKS.email}`} className="w-full sm:w-auto group">
+              <a href={LINKS.github} target="_blank" rel="noreferrer noopener" className="group w-full sm:w-auto">
                 <NeoButton
                   variant="primary"
                   size="lg"
-                  className="w-full justify-center flex items-center group-hover:-translate-y-1 group-hover:shadow-neo-lg transition-all"
-                  type="button"
+                  className="flex w-full items-center justify-center transition-all group-hover:-translate-y-1 group-hover:shadow-neo-lg"
+                  as="span"
                 >
-                  <Mail className="w-5 h-5 mr-2" /> Contact Me
+                  <Github className="mr-2 h-5 w-5" /> View the code
                 </NeoButton>
               </a>
-              <a href={LINKS.resume} download className="w-full sm:w-auto group">
+              <a href={LINKS.resume} download className="group w-full sm:w-auto">
                 <NeoButton
                   variant="base"
                   size="lg"
-                  className="w-full justify-center flex items-center group-hover:-translate-y-1 group-hover:shadow-neo-lg transition-all"
-                  type="button"
+                  className="flex w-full items-center justify-center transition-all group-hover:-translate-y-1 group-hover:shadow-neo-lg"
+                  as="span"
                 >
-                  <Download className="w-5 h-5 mr-2" /> CV / Resume
+                  <Download className="mr-2 h-5 w-5" /> CV / Resume
+                </NeoButton>
+              </a>
+              <a href={`mailto:${LINKS.email}`} className="group w-full sm:w-auto">
+                <NeoButton
+                  variant="base"
+                  size="lg"
+                  className="flex w-full items-center justify-center transition-all group-hover:-translate-y-1 group-hover:shadow-neo-lg"
+                  as="span"
+                >
+                  <Mail className="mr-2 h-5 w-5" /> Email
                 </NeoButton>
               </a>
             </motion.div>
@@ -548,8 +679,8 @@ export default function Home() {
         >
           <span className="font-mono text-xs font-bold">SCROLL</span>
           <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ repeat: Infinity, duration: 2 }}
+            animate={reduceMotion ? undefined : { y: [0, 10, 0] }}
+            transition={reduceMotion ? undefined : { repeat: Infinity, duration: 2 }}
             className="bg-black text-white p-2"
           >
             <ChevronDown />
@@ -558,14 +689,14 @@ export default function Home() {
 
         <div className="mt-auto border-t-[4px] border-black bg-neo-primary relative z-20">
           <Marquee
-            text="SCROLL FOR MORE • WEB DEV • UI/UX • FULL STACK • "
+            text="C++20 • PYTHON • TYPESCRIPT • AZURE FUNCTIONS • THREE.JS • ESP32 • SUPABASE • "
             className="font-black text-xl py-3 text-black"
           />
         </div>
       </section>
 
-      {/* --- SERVICES --- */}
-      <section id="services" className="py-20 border-b-[4px] border-black bg-white relative">
+      {/* --- FOCUS AREAS --- */}
+      <section id="focus" className="py-20 border-b-[4px] border-black bg-white relative">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ x: -100, opacity: 0 }}
@@ -573,9 +704,9 @@ export default function Home() {
             viewport={{ once: true }}
             className="flex items-end justify-between gap-6 mb-16"
           >
-            <h2 className="text-5xl md:text-8xl font-black uppercase leading-none">What I Do</h2>
+            <h2 className="text-5xl md:text-8xl font-black uppercase leading-none">What I Build</h2>
             <span className="hidden md:inline-block font-mono font-bold bg-black text-white px-3 py-2 border-2 border-black shadow-neo-sm">
-              SERVICES
+              FOCUS
             </span>
           </motion.div>
 
@@ -586,7 +717,7 @@ export default function Home() {
             viewport={{ once: true, margin: "-100px" }}
             className="grid grid-cols-1 md:grid-cols-3 gap-8"
           >
-            {SERVICES.map((s, i) => (
+            {FOCUS_AREAS.map((s, i) => (
               <motion.div variants={fadeInUp} key={i}>
                 <NeoCard className="h-full bg-neo-bg hover:bg-neo-primary transition-all duration-300 hover:-translate-y-2 group">
                   <div className="bg-black text-white w-14 h-14 flex items-center justify-center border-[3px] border-transparent mb-6 shadow-neo-sm group-hover:bg-white group-hover:text-black group-hover:border-black transition-colors">
@@ -609,7 +740,7 @@ export default function Home() {
               Works
             </h2>
             <a href={LINKS.github} target="_blank" rel="noreferrer noopener" className="hidden md:flex">
-              <NeoButton variant="secondary" type="button">
+              <NeoButton variant="secondary" as="span">
                 <Github className="w-5 h-5 mr-2" /> GitHub
               </NeoButton>
             </a>
@@ -628,63 +759,106 @@ export default function Home() {
                   title={`0${index + 1}`}
                   className="flex flex-col h-full bg-white hover:shadow-neo-lg transition-shadow duration-300"
                 >
+                  {/* Not focusable: the Details button below opens the same modal,
+                      and two tab stops per card made keyboard nav twice as long. */}
                   <div
-                    className="h-56 bg-gray-200 border-[3px] border-black mb-5 relative overflow-hidden group cursor-pointer"
+                    className="group relative mb-3 h-56 cursor-pointer overflow-hidden border-[3px] border-black bg-neo-bg"
                     onClick={() => openModal(project)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => e.key === "Enter" && openModal(project)}
-                    aria-label={`Open ${project.title}`}
+                    aria-hidden="true"
                   >
                     {project.imgSrc ? (
                       <Image
                         src={project.imgSrc}
-                        alt={`${project.title} preview`}
+                        alt=""
                         fill
                         sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0"
+                        className="object-cover object-left-top transition-transform duration-500 group-hover:scale-105"
                       />
+                    ) : project.arch ? (
+                      <ArchDiagram spec={project.arch} />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <span className="font-black text-4xl opacity-10 uppercase -rotate-12">
+                      <div className="flex h-full w-full items-center justify-center">
+                        <span className="-rotate-12 text-4xl font-black uppercase opacity-10">
                           {project.title}
                         </span>
                       </div>
                     )}
 
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                      <div className="bg-white border-2 border-black px-3 py-1 font-bold font-mono text-xs uppercase transform rotate-3">
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover:bg-black/20 group-hover:opacity-100">
+                      <div className="rotate-3 border-2 border-black bg-white px-3 py-1 font-mono text-xs font-bold uppercase">
                         View Project
                       </div>
                     </div>
                   </div>
 
-                  <h3 className="text-3xl font-black uppercase mb-2 leading-none">{project.title}</h3>
+                  {project.imgNote && (
+                    <p className="mb-4 font-mono text-[10px] leading-snug text-black/55">
+                      {project.imgNote}
+                    </p>
+                  )}
 
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  <h3 className="mb-1 text-3xl font-black uppercase leading-none">{project.title}</h3>
+                  <p className="mb-4 font-mono text-xs font-bold uppercase tracking-tight text-black/60">
+                    {project.blurb}
+                  </p>
+
+                  <div className="mb-4 flex flex-wrap gap-2">
                     {project.tech.map((t) => (
                       <span
                         key={t}
-                        className="bg-black text-white text-[10px] font-mono px-2 py-1 font-bold uppercase"
+                        className="bg-black px-2 py-1 font-mono text-[10px] font-bold uppercase text-white"
                       >
                         {t}
                       </span>
                     ))}
                   </div>
 
-                  <p className="font-bold text-sm mb-6 flex-grow border-l-4 border-neo-accent pl-3">
+                  <p className="mb-5 flex-grow border-l-4 border-neo-accent pl-3 text-sm font-bold">
                     {project.description}
                   </p>
 
-                  <NeoButton
-                    onClick={() => openModal(project)}
-                    variant="base"
-                    className="w-full mt-auto flex justify-between items-center group"
-                    type="button"
-                  >
-                    Details{" "}
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </NeoButton>
+                  {/* Every project exposes a real destination, so no claim here is
+                      unverifiable from the card itself. */}
+                  <div className="mt-auto flex flex-wrap gap-2">
+                    {project.projectLink && (
+                      <a
+                        href={project.projectLink}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        className="flex items-center gap-1.5 border-[3px] border-black bg-neo-primary px-3 py-2 font-mono text-xs font-black uppercase text-black shadow-neo-sm transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-neo-accent focus-visible:ring-offset-2"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" /> Live
+                      </a>
+                    )}
+                    {project.code && (
+                      <a
+                        href={project.code}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        className="flex items-center gap-1.5 border-[3px] border-black bg-white px-3 py-2 font-mono text-xs font-black uppercase text-black shadow-neo-sm transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-neo-accent focus-visible:ring-offset-2"
+                      >
+                        <Github className="h-3.5 w-3.5" /> Code
+                      </a>
+                    )}
+                    {project.altCode && (
+                      <a
+                        href={project.altCode}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        className="flex items-center gap-1.5 border-[3px] border-black bg-white px-3 py-2 font-mono text-xs font-black uppercase text-black shadow-neo-sm transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-neo-accent focus-visible:ring-offset-2"
+                      >
+                        <Github className="h-3.5 w-3.5" /> {project.altCodeLabel ?? "Alt"}
+                      </a>
+                    )}
+                    <button
+                      onClick={() => openModal(project)}
+                      type="button"
+                      className="group flex flex-grow items-center justify-between gap-1.5 border-[3px] border-black bg-black px-3 py-2 font-mono text-xs font-black uppercase text-white shadow-neo-sm transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-neo-accent focus-visible:ring-offset-2"
+                    >
+                      Details
+                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                    </button>
+                  </div>
                 </NeoCard>
               </motion.div>
             ))}
@@ -800,14 +974,12 @@ export default function Home() {
                         <div className="absolute inset-0 translate-x-2 translate-y-2 bg-black transition-transform duration-200 group-hover:translate-x-3 group-hover:translate-y-3" />
 
                         <div className="relative bg-white border-[3px] border-black overflow-hidden flex flex-col md:min-h-[500px]">
-                          <div className="bg-black text-white px-4 py-2 flex items-center justify-between border-b-[3px] border-black shrink-0">
-                            <div className="flex gap-2">
-                              <div className="w-3 h-3 rounded-full bg-red-500 border border-white/20" />
-                              <div className="w-3 h-3 rounded-full bg-yellow-400 border border-white/20" />
-                              <div className="w-3 h-3 rounded-full bg-green-500 border border-white/20" />
-                            </div>
-                            <span className="font-mono text-xs text-gray-400">
-                              ~/work/{exp.company.toLowerCase()}
+                          <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b-[3px] border-black bg-black px-4 py-2 text-white">
+                            <span className="font-mono text-xs font-bold uppercase tracking-wide">
+                              {exp.fullName}
+                            </span>
+                            <span className="font-mono text-[11px] text-white/70">
+                              {exp.location}
                             </span>
                           </div>
 
@@ -980,5 +1152,6 @@ export default function Home() {
         )}
       </AnimatePresence>
     </main>
+    </MotionConfig>
   );
 }
